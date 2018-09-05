@@ -9,6 +9,7 @@
 #define HEADER_SENDBACKCONTAINER_H_
 
 #include <deque>
+#include <vector>
 #include <mutex>
 #include <sys/time.h>
 
@@ -17,19 +18,19 @@ namespace uiRobotics {
 
 struct SBCPair
 {
-	void* prt;
+	std::vector<char*>* prt;
 	char* msg;
+	size_t at;
 };
 
 class SendBackContainer {
 public:
 
-	typedef std::deque<SBCPair>::iterator iterator
-
 	SendBackContainer(size_t size);
 	virtual ~SendBackContainer();
 	void add(char* msg);
 	void addSub(char* subMessage);
+	char* getMessage();
 
 
 protected:
@@ -41,10 +42,10 @@ private:
 	static long long getTimeStamp (void);
 	static bool compareTimeStamp(long long left, long long right, long long interval);
 	iterator where(void);
-	size_t at;
+	size_t m_at;
 	std::mutex* ms_mutex;
 	iterator m_iterator;
-}
+	long long m_lastTimeStamp;
 };
 
 }; /* namespace uiRobotics */

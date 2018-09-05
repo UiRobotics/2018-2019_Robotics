@@ -44,27 +44,39 @@ bool SendBackContainer::compareTimeStamp(long long left, long long right, long l
 
 }
 
+char* SendBackContainer::getMessage(){
+	long long myTimeStamp = getTimeStamp();
+
+	ms_mutex->lock();
+	if(compareTimeStamp())
+`	{
+
+	}
+	ms_mutex->unlock();
+}
+
 void SendBackContainer::add(char* msg)
 {
 	ms_mutex->lock();
 	SBCPair pair;
 	pair.msg = msg;
-	pair.prt = nullptr;
+	pair.prt = new std::vector();
 
 	m_dque->push_back(pair);
 
 	ms_mutex->unlock();
 }
 
-SendBackContainer::addSub(char* subMessage){
+void SendBackContainer::addSub(char* subMessage){
 
 	char* copyMessage = malloc(sizeof(char)*(strlen(subMessage)+1));
 
 	memcpy(copyMessage, subMessage, strlen(subMessage)+1);
 
-	iterator theIterator = where();
-	theIterator.prt = copyMessage;
 
+	ms_mutex->lock();
+	m_dque->operator[](m_at).prt->push_back(copyMessage);
+	ms_mutex->unlock();
 }
 
 iterator SendBackContainer::where(){

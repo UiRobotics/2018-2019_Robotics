@@ -8,20 +8,21 @@
 #ifndef HEADER_SENDBACKCONTAINER_H_
 #define HEADER_SENDBACKCONTAINER_H_
 
-#include <deque>
+#include <map>
 #include <vector>
 #include <mutex>
 #include <sys/time.h>
+#include <math.h>
 
 namespace uiRobotics {
 
-
-struct SBCPair
-{
-	std::vector<char*>* prt;
-	char* msg;
-	size_t at;
+struct timeCompare{
+	inline bool operator() (const long long& left, const long long& right)
+	{
+		return left<right;
+	}
 };
+
 
 class SendBackContainer {
 public:
@@ -30,22 +31,17 @@ public:
 	virtual ~SendBackContainer();
 	void add(char* msg);
 	void addSub(char* subMessage);
-	char* getMessage();
+	std::string getMessage();
 
 
 protected:
-	std::deque<SBCPair>* m_dque;
-	size_t m_size;
-	size_t m_current;
-
+	std::map<long long, std::string, timeCompare>* m_subMessages;
+	std::map<long long, std::string, timeCompare>* m_comMessages;
 private:
 	static long long getTimeStamp (void);
 	static bool compareTimeStamp(long long left, long long right, long long interval);
-	iterator where(void);
-	size_t m_at;
 	std::mutex* ms_mutex;
-	iterator m_iterator;
-	long long m_lastTimeStamp;
+	int m_numberOfIterations;
 };
 
 }; /* namespace uiRobotics */

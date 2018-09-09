@@ -10,11 +10,11 @@
 namespace uiRobotics {
 
 SendBackContainer::SendBackContainer(size_t size)
-	: m_current(0x0000)
-	, m_iterator()
+	:m_numberOfIterations(0)
 {
-	m_size = size;
-	m_dque = new std::deque<SBCPair>(size);
+	m_subMessages = new std::map<long long, std::string, timeCompare>();
+	m_comMessages = new std::map<long long, std::string, timeCompare>();
+
 	ms_mutex = new std::mutex();
 
 }
@@ -31,7 +31,9 @@ long long SendBackContainer::getTimeStamp()
 
 bool SendBackContainer::compareTimeStamp(long long left, long long right, long long interval){
 
-	long long dif = right - left;
+	long long dif = abs(right - left);
+
+
 
 	if (dif < interval)
 	{
@@ -44,49 +46,53 @@ bool SendBackContainer::compareTimeStamp(long long left, long long right, long l
 
 }
 
-char* SendBackContainer::getMessage(){
-	long long myTimeStamp = getTimeStamp();
+std::string SendBackContainer::getMessage(){
+	long long currentTime = getTimeStamp();
+	long remainder = (long)currentTime % 1000;
+	long dividedRemainder = remainder / 100;
+
+	std::string val;
 
 	ms_mutex->lock();
-	if(compareTimeStamp())
-`	{
+	if(dividedRemainder > (long)m_numberOfIterations){
 
+		std::map<long long, std::string, timeCompare>::iterator iter = m_comMessages->upper_bound(0);
+
+		val = iter->second;
 	}
+	else{
+
+		std::map<long long, std::string, timeCompare>::iterator iter = m_subMessages->upper_bound(0);
+
+		val = iter->second;
+	}
+
 	ms_mutex->unlock();
+	return val;
 }
 
 void SendBackContainer::add(char* msg)
 {
 	ms_mutex->lock();
-	SBCPair pair;
-	pair.msg = msg;
-	pair.prt = new std::vector();
-
-	m_dque->push_back(pair);
+	m_comMessages->emplace(getTimeStamp(), std::string(msg));
 
 	ms_mutex->unlock();
 }
 
 void SendBackContainer::addSub(char* subMessage){
-
-	char* copyMessage = malloc(sizeof(char)*(strlen(subMessage)+1));
-
-	memcpy(copyMessage, subMessage, strlen(subMessage)+1);
-
-
 	ms_mutex->lock();
-	m_dque->operator[](m_at).prt->push_back(copyMessage);
+	m_subMessages->emplace(getTimeStamp(), std::string(subMessage));
+
 	ms_mutex->unlock();
 }
 
-iterator SendBackContainer::where(){
-	return m_dque->begin()+at;
-}
 
 SendBackContainer::~SendBackContainer()
 {
-	delete(m_dque);
+	delete(m_comMessages);
+	delete(m_subMessages);
 	delete(ms_mutex);
 }
 
-} /* namespace uiRobotics */
+}
+/* namespace uiRobotics */

@@ -1,3 +1,9 @@
+/*
+ * Cppm_Sabertooth.ino
+ * 
+ * This code is meant to be loaded on to the Arduino that controls the Sabertooth motor controller.
+ */
+
 #include <TimerOne.h>
 #include <Servo.h>
 unsigned long int a,b,c;

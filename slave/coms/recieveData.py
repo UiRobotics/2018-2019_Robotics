@@ -1,14 +1,17 @@
 '''********************************************************************
-        recieveData.py
+    recieveData.py
 	Andrew L
-
 	The template to open an fldigi client and recieve data through python
-	Fldigi must already be running
 ********************************************************************'''
 import pyfldigi
-import time # for delays
+import time
 
+app = pyfldigi.ApplicationMonitor()
+app.start() # starts fldigi
 client = pyfldigi.Client()
+# sets the op mode and cursor frequency
+client.modem.id = 42
+client.modem.carrier = 2500
 
 # takes in messages recieved by fldigi, strips them of white space, and
 # puts them as a string in curr_message

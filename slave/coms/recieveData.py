@@ -16,13 +16,18 @@ client.modem.carrier = 2500
 # takes in messages recieved by fldigi, strips them of white space, and
 # puts them as a string in curr_message
 buffer = ''
+startString = "IDevice"
+endString = ";"
 while True:
-    curr_message = client.text.get_rx_data().decode('UTF-8')
-    if len(curr_message) != 0:
-        buffer += curr_message
+    curr_buffer = client.text.get_rx_data().decode('UTF-8')
+    if len(curr_buffer) != 0:
+        buffer += curr_buffer
     # uses 001 as a terminating character and prints only when 001 is recieved
-    if "001" in buffer:
-        print(buffer)
+    if endString in buffer:
+        start = buffer.find(startString)
+        end = buffer.find(endString) + len(endString) -1
+        message = buffer[start:end]
+        print(message)
         buffer = ''
 
     time.sleep(1)

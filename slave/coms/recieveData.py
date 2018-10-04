@@ -7,27 +7,36 @@ import pyfldigi
 import time
 
 app = pyfldigi.ApplicationMonitor()
-app.start() # starts fldigi
+app.start()                 # starts fldigi
 client = pyfldigi.Client()
-# sets the op mode and cursor frequency
-client.modem.id = 42
-client.modem.carrier = 2500
+client.modem.id = 42        # sets op mode
+client.modem.carrier = 2500 # sets cursor frequency
 
-# takes in messages recieved by fldigi, strips them of white space, and
-# puts them as a string in curr_message
-buffer = ''
-startString = "IDevice"
-endString = ";"
+def expectMessage():        # takes in messages recieved by fldigi, strips them of white space, and prints until 'REPLY' is sent
+    RECIEVING = True
+    buffer = ''
+    startString = "IDevice"
+    endString = ";"
+    while RECIEVING:
+        curr_buffer = client.text.get_rx_data().decode('UTF-8').strip()
+        if len(curr_buffer) != 0:
+            buffer += curr_buffer
+        if endString in buffer: #only looks for messages in buffer if there's a terminating character in the buffer
+            start = buffer.find(startString)
+            end = buffer.find(endString) + len(endString) -1
+            if not start == -1:
+                message = buffer[start:end]
+                print(message)
+                buffer = ''
+
+        if "REPLY" in buffer:
+            RECIEVING = False
+
+        #time.sleep(1) #try not having a delay
+
+def sendData():
+    client.main.send("TODO: actually send data")
+
 while True:
-    curr_buffer = client.text.get_rx_data().decode('UTF-8')
-    if len(curr_buffer) != 0:
-        buffer += curr_buffer
-    # uses 001 as a terminating character and prints only when 001 is recieved
-    if endString in buffer:
-        start = buffer.find(startString)
-        end = buffer.find(endString) + len(endString) -1
-        message = buffer[start:end]
-        print(message)
-        buffer = ''
-
-    time.sleep(1)
+    expectMessage()
+    sendData()

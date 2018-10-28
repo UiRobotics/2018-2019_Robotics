@@ -14,13 +14,45 @@ client.modem.carrier = 2500 # sets cursor frequency
 
 startString = "IDevice:"
 endString = ";"
+''' ideal message would be like "Idevice:motor1-23:gps-3490;"
+    opMode - x changes the op mode to x (between 1 and 70something)
+    cursFreq - x changes cursor frequency to x (between 31 and 2969)
+'''
+
+def rosPost(commandPair):
+    print(commandPair)
 
 def parseM(message):
-    message = message[len(startString):-len(endString)] # removes the starting and terminating characters
-    # continue parsing, use command-value (maybe list of touples), will eventually go to ros topics or something
+    message = message[len(startString):] # removes the starting characters
+    # will eventually go to ros topics or something
+
+    commands = []
+    while len(message) != 0:    # extrapolate the commands and values into a list(commands) of touples
+        valueEnd = message.find(':')
+        comValue = message[:valueEnd]
+        mid = comValue.find('-')
+        if mid != -1:
+            commands.append((comValue[:mid],comValue[mid+1:]))
+        else:
+            commands.append((comValue,''))
+        if valueEnd != -1:
+            message = message[valueEnd + 1:]
+        else:
+            message = ""
+
+    for comPair in commands:    # interperate coms commands and export the rest
+        if comPair[0] == "opMode":
+            client.main.send("switchingOp")
+            client.modem.id = comPair[1]
+        elif comPair[0] == "cursFreq":
+            client.main.send("switchingCurs")
+            client.modem.carrier = comPair[1]
+        else:
+            rosPost(comPair)
+    print(commands) ##############################################################
 
 
-def expectMessage():        # takes in messages recieved by fldigi, strips them of white space, and prints until 'REPLY' is sent
+def expectMessage():    # takes in messages recieved by fldigi, strips them of white space, and prints until 'REPLY' is sent
     RECIEVING = True
     buffer = ''
     while RECIEVING:
@@ -32,12 +64,9 @@ def expectMessage():        # takes in messages recieved by fldigi, strips them 
             end = buffer.find(endString) + len(endString) -1
             if not start == -1:
                 message = buffer[start:end]
-                print(message)
+                print(message)#####################################################
                 parseM(message)
                 buffer = ''
-
-        if "REPLY" in buffer:
-            RECIEVING = False
 
         time.sleep(1) #try not having a delay
 

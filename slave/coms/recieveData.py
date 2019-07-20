@@ -76,3 +76,27 @@ def sendData():
 '''while True:
     expectMessage()
     sendData()'''
+
+#def recieveFile():
+#    file = open(src,"w+") #fix opening
+#    buffer = ""
+#    complete = transfered = False
+#    while not complete:
+#        buffer += client.text.get_rx_data().decode('UTF-8')
+#        if not transfered:
+#            start = buffer.find(':')
+#            buffer = buffer[start:]
+#            end = buffer.find("\n")
+#            src = buffer[start:end]
+#            if src == "<end>\n":
+#                transfered = True;
+#            else:
+#                file.write(src)
+#            buffer = buffer[end:]
+#        else:
+#            sum = buffer[9:12]
+#            #compare sum
+#    #write to the file, may need to fix buffer
+#    
+#
+#    file.close()

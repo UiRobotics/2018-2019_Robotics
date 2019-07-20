@@ -5,8 +5,6 @@
 ********************************************************************'''
 import pyfldigi
 import hashlib #finding checksum for verification
-import io #for reading/writing to files
-import os #to get file size for checksum percentage
 import time
 
 app = pyfldigi.ApplicationMonitor()
@@ -19,14 +17,14 @@ client.modem.carrier = 2500
 CALL_SIGN = "KD9JTB"
 
 def yellCallsign():
-    client.main.send("de" + (" " + CALL_SIGN)*3 + " k\n")
+    client.main.send("de" + (" " + CALL_SIGN)*3 + " k\n", timeout=15)
     client.delay(1500)
 
 
 
 
 
-
+'''
 def md5sum(src, length=io.DEFAULT_BUFFER_SIZE):
     size = os.path.getsize(src)
     calculated = 0
@@ -47,7 +45,7 @@ def sendFile(src, length=io.DEFAULT_BUFFER_SIZE):
     sum = md5sum("wordsTest.txt")
     print (sum)
     client.main.send("\n<end>Checksum:" + sum.decode("utf-8") + "...end\n\n^r")
-
+'''
 '''*****************************************************************'''
 '''
 yellCallsign()

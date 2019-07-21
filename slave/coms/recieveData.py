@@ -10,7 +10,7 @@ import time
 app = pyfldigi.ApplicationMonitor()
 app.start()                 # starts fldigi
 client = pyfldigi.Client()
-client.modem.id = 41       # sets op mode
+client.modem.id = 40       # sets op mode
 client.modem.carrier = 2500 # sets cursor frequency
 
 startString = "IDevice:"
@@ -67,4 +67,4 @@ def expectMessage():    # takes in messages recieved by fldigi, strips them of w
                 buffer = ''
 
         time.sleep(1) #try not having a delay
-#expectMessage()
+expectMessage()

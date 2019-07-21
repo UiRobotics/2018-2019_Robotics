@@ -10,7 +10,7 @@ import time
 app = pyfldigi.ApplicationMonitor()
 app.start()                 # starts fldigi
 client = pyfldigi.Client()
-client.modem.id = 41       # sets op mode
+client.modem.id = 40       # sets op mode
 client.modem.carrier = 2500 # sets cursor frequency
 
 startString = "IDevice:"
@@ -22,7 +22,9 @@ endString = ";"
 
 def rosPost(command):
     print("ros command = " + command)
-    exec(command)
+    try:
+        exec(command)
+    except: pass
 
 def parseM(message):
     message = message[len(startString):] # removes the starting characters
@@ -30,15 +32,18 @@ def parseM(message):
     message = message[3:]                # remove checksum from message
     valueEnd = message.find(endString)   # remove the terminating character from the string
     command = message[:valueEnd]
+    print(command)
+    checker = hashlib.md5()                                               #
+    checker.update(command.encode())                                      # calculating the md5sum of the command
+    calculatedSum = (b'%02X' % (sum(checker.digest()) & 0xFF)).decode()   #
 
-    bytes = hashlib.md5()                                               #
-    bytes.update(command.encode())                                      # calculating the md5sum of the command
-    calculatedSum = (b'%02X' % (sum(bytes.digest()) & 0xFF)).decode()   #
-    
+    print(calculatedSum)
     if checkSum == calculatedSum:
+        time.sleep(4)
         client.main.send("de GOOD k\n", timeout=15)
         rosPost(command)
     else:
+        time.sleep(4)
         client.main.send("de BAD k\n", timeout=15)
 
 
@@ -46,13 +51,13 @@ def expectMessage():    # takes in messages recieved by fldigi, strips them of w
     RECIEVING = True
     buffer = ''
     while RECIEVING:
-        curr_buffer = client.text.get_rx_data().decode('UTF-8').strip()
+        curr_buffer = client.text.get_rx_data().decode('UTF-8')
         if len(curr_buffer) != 0:
             buffer += curr_buffer
         if endString in buffer: # only looks for messages in buffer if there's a terminating character in the buffer
             # if startString isn't here then send back a 'no I didn't get it'
             start = buffer.find(startString)
-            end = buffer.find(endString) + len(endString) -1
+            end = buffer.find(endString) + len(endString)
             if not start == -1:
                 message = buffer[start:end]
                 print("message recieved = " + message)#####################################################
@@ -60,7 +65,7 @@ def expectMessage():    # takes in messages recieved by fldigi, strips them of w
                 buffer = ''
 
         time.sleep(1) #try not having a delay
-
+expectMessage()
 
 '''while True:
     expectMessage()'''
@@ -86,6 +91,5 @@ def expectMessage():    # takes in messages recieved by fldigi, strips them of w
             #compare sum
     #write to the file, may need to fix buffer
     
-
     file.close()
 '''

@@ -29,22 +29,26 @@ def sendCommand(command):
     stringToSend = startString + calculatedSum + ':' + command + endString
     client.main.send(stringToSend, timeout=timeOut)
     while not awaitFailure():
+        print('Transmition failed - Resending . . .')
         client.main.send(stringToSend, timeout=timeOut)
     print('Good to go on another one cheif')
 
+def sendFile():
+    print('wopw')
+
 def awaitFailure():
-    t_end = time.time() + 15
-    noResponse = true
+    t_end = time.time() + 10
+    noResponse = True
     buffer = ''
-    while time.time() < t_end && noResponse:
+    while (time.time() < t_end) and noResponse:
         curr_buffer = client.text.get_rx_data().decode('UTF-8')
         if len(curr_buffer) != 0:
             buffer += curr_buffer
             if 'BAD' in buffer:
-                noResponse = false
+                noResponse = False
                 return False
             elif 'GOOD' in buffer:
-                noResponse = false
+                noResponse = False
                 return True
 
 def yellCallsign():

@@ -8,47 +8,45 @@ import hashlib #finding checksum for verification
 import time
 
 app = pyfldigi.ApplicationMonitor()
-app.start() # starts fldigi
+app.start()     # starts fldigi
 client = pyfldigi.Client()
-# sets the op mode and cursor frequency
-client.modem.id = 41
-client.modem.carrier = 2500
+client.modem.id = 41    # sets op mode
+client.modem.carrier = 2500 #sets cursor frequency
 
 CALL_SIGN = "KD9JTB"
+startString = "IDevice:"
+endString = ";"
+''' ideal message would be like "Idevice:5B:print('wow');"
+    opMode - x changes the op mode to x (between 1 and 70something)
+    cursFreq - x changes cursor frequency to x (between 31 and 2969)
+'''
+
+def sendCommand(command):
+    checker = hashlib.md5()                                               #
+    checker.update(command.encode())                                      # calculating the md5sum of the command
+    calculatedSum = (b'%02X' % (sum(checker.digest()) & 0xFF)).decode()   #
+    timeOut = 10 + len(command)
+    stringToSend = startString + calculatedSum + ':' + command + endString
+    client.main.send(stringToSend, timeout=timeOut)
+    while not awaitFailure():
+        client.main.send(stringToSend, timeout=timeOut)
+    print('Good to go on another one cheif')
+
+def awaitFailure():
+    t_end = time.time() + 15
+    noResponse = true
+    buffer = ''
+    while time.time() < t_end && noResponse:
+        curr_buffer = client.text.get_rx_data().decode('UTF-8')
+        if len(curr_buffer) != 0:
+            buffer += curr_buffer
+            if 'BAD' in buffer:
+                noResponse = false
+                return False
+            elif 'GOOD' in buffer:
+                noResponse = false
+                return True
 
 def yellCallsign():
     client.main.send("de" + (" " + CALL_SIGN)*3 + " k\n", timeout=15)
     client.delay(1500)
-
-
-
-
-
-'''
-def md5sum(src, length=io.DEFAULT_BUFFER_SIZE):
-    size = os.path.getsize(src)
-    calculated = 0
-    bytes = hashlib.md5()
-    with io.open(src, mode="rb") as file:
-        for chunk in iter(lambda: file.read(length), b''):
-            bytes.update(chunk)
-            calculated += len(chunk)
-            #print("{}%".format((calculated/size)*100)) #prints the computation percentage
-    return b'%02X' % (sum(bytes.digest()) & 0xFF)
-
-def sendFile(src, length=io.DEFAULT_BUFFER_SIZE):
-    client.main.send("IDevice:FileTransfer^r")
-    client.main.send("\nFile:" + src +"\n^r")
-    with io.open(src, mode="rb") as file:
-        for chunk in iter(lambda: file.read(length), b''):
-            client.main.send(chunk + b'^r') #TODO get this to wait for send before sending next chunk
-    sum = md5sum("wordsTest.txt")
-    print (sum)
-    client.main.send("\n<end>Checksum:" + sum.decode("utf-8") + "...end\n\n^r")
-'''
-'''*****************************************************************'''
-'''
-yellCallsign()
-
-client.main.send("hooplah\n") # takes in strings or bytes and sends as bytes
-'''

@@ -10,7 +10,7 @@ import time
 app = pyfldigi.ApplicationMonitor()
 app.start()                 # starts fldigi
 client = pyfldigi.Client()
-client.modem.id = 40       # sets op mode
+client.modem.id = 41       # sets op mode
 client.modem.carrier = 2500 # sets cursor frequency
 
 startString = "IDevice:"
@@ -21,24 +21,23 @@ endString = ";"
 '''
 
 def rosPost(command):
-    print("ros command = " + command)
+    print("ros command = " + command) ###############################################
     try:
         exec(command)
     except: pass
 
 def parseM(message):
     message = message[len(startString):] # removes the starting characters
-    checkSum = message[:2]               # gather checksum
+    sentSum = message[:2]               # gather checksum
     message = message[3:]                # remove checksum from message
-    valueEnd = message.find(endString)   # remove the terminating character from the string
-    command = message[:valueEnd]
-    print(command)
+    valueEnd = message.find(endString)   # 
+    command = message[:valueEnd]         # remove the terminating character from the string
+    
     checker = hashlib.md5()                                               #
     checker.update(command.encode())                                      # calculating the md5sum of the command
     calculatedSum = (b'%02X' % (sum(checker.digest()) & 0xFF)).decode()   #
 
-    print(calculatedSum)
-    if checkSum == calculatedSum:
+    if sentSum == calculatedSum:
         time.sleep(4)
         client.main.send("de GOOD k\n", timeout=15)
         rosPost(command)
@@ -68,31 +67,4 @@ def expectMessage():    # takes in messages recieved by fldigi, strips them of w
                 buffer = ''
 
         time.sleep(1) #try not having a delay
-expectMessage()
-
-'''while True:
-    expectMessage()'''
-
-'''def recieveFile():
-    file = open(src,"w+") #fix opening
-    buffer = ""
-    complete = transfered = False
-    while not complete:
-        buffer += client.text.get_rx_data().decode('UTF-8')
-        if not transfered:
-            start = buffer.find(':')
-            buffer = buffer[start:]
-            end = buffer.find("\n")
-            src = buffer[start:end]
-            if src == "<end>\n":
-                transfered = True;
-            else:
-                file.write(src)
-            buffer = buffer[end:]
-        else:
-            sum = buffer[9:12]
-            #compare sum
-    #write to the file, may need to fix buffer
-    
-    file.close()
-'''
+#expectMessage()

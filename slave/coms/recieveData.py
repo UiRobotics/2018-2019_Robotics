@@ -55,13 +55,16 @@ def expectMessage():    # takes in messages recieved by fldigi, strips them of w
         if len(curr_buffer) != 0:
             buffer += curr_buffer
         if endString in buffer: # only looks for messages in buffer if there's a terminating character in the buffer
-            # if startString isn't here then send back a 'no I didn't get it'
-            start = buffer.find(startString)
-            end = buffer.find(endString) + len(endString)
-            if not start == -1:
+            if startString in buffer:
+                start = buffer.find(startString)
+                end = buffer.find(endString) + len(endString)
                 message = buffer[start:end]
                 print("message recieved = " + message)#####################################################
                 parseM(message)
+                buffer = ''
+            else: ##################################test######## if theres a terminating character but no start string
+                time.sleep(4)
+                client.main.send("de BAD k\n", timeout=15)
                 buffer = ''
 
         time.sleep(1) #try not having a delay

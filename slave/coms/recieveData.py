@@ -93,3 +93,7 @@ def opMode(modeName):
     client.modem.carrier = 2500
     time.sleep(1)
     client.main.send("de opMode set at " + client.modem.name + " k/n", timeout=15)
+
+def gps():
+    rosGPS = "" # get the longitude and latitude from subbing to the gps arduino
+    client.main.send("de longitude = " + str(rosGPS[0]) + "\nlatitude = " + str(rosGPS[1]) + "k\n")

@@ -1,7 +1,8 @@
+    
 #include <Adafruit_GPS.h>
 #include <SoftwareSerial.h>
 #include <ros.h>
-#include <std_msgs/String.h>
+#include <std_msgs/Float32MultiArray.h>
 
 // Connect the GPS Power pin to 5V
 // Connect the GPS Ground pin to ground
@@ -9,8 +10,8 @@
 // Connect the GPS RX (receive) pin to Digital 2
 
 ros::NodeHandle nh;
-std_msgs::String str_msg;
-ros::Publisher chatter("chatter", &str_msg);
+std_msgs::Float32MultiArray coords;
+ros::Publisher gpsCoords("GPS", &coords);
 
 // (you can change the pin numbers to match your wiring):
 SoftwareSerial mySerial(3, 2);
@@ -31,7 +32,9 @@ void useInterrupt(boolean); // Func prototype keeps Arduino 0023 happy
 
 void setup() {
   Serial.begin(9600);
-
+  nh.initNode();
+  nh.advertise(gpsCoords);
+  //Serial.println("lsadf");
   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's- some use 4800
   GPS.begin(9600);
   
@@ -113,15 +116,20 @@ void loop()                     // run over and over again
     timer = millis(); // reset the timer
     
     if (GPS.fix) {
-      float latitude = GPS.latitudeDegrees;
-      float longitude = GPS.longitudeDegrees;
+      coords.data[0] = GPS.latitudeDegrees;
+      coords.data[1] = GPS.longitudeDegrees;
+      //Serial.println("hello22");
+      gpsCoords.publish(&coords);
+      nh.spinOnce();
+    //  Serial.println("hello");
+      delay(1000);
+      
       
       
       Serial.println("\nLocation (in degrees, works with Google Maps): ");
       Serial.print(GPS.latitudeDegrees, 4);
       Serial.print(", "); 
       Serial.println(GPS.longitudeDegrees, 4);
-      
       Serial.print("Speed (knots): "); Serial.println(GPS.speed);
       Serial.print("Angle: "); Serial.println(GPS.angle);
       Serial.print("Altitude: "); Serial.println(GPS.altitude);

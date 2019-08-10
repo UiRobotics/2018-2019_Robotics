@@ -10,18 +10,18 @@ import time
 app = pyfldigi.ApplicationMonitor()
 app.start()                 # starts fldigi
 client = pyfldigi.Client()
-client.modem.id = 40       # sets op mode
+client.modem.name = 'BPSK63'       # sets op mode (likely switch to 59)
 client.modem.carrier = 2500 # sets cursor frequency
 
 startString = "IDevice:"
 endString = ";"
 ''' ideal message would be like "Idevice:5B:print('wow');"
-    opMode - x changes the op mode to x (between 1 and 70something)
-    cursFreq - x changes cursor frequency to x (between 31 and 2969)
+    opMode(modeName) - changes the op mode to modeName (send as string)
+    changeFrequency(frequency) - changes the operating frequency in MHz
+    restartFldigi() - restarts the app and client
 '''
 
 def rosPost(command):
-    print("ros command = " + command) ###############################################
     try:
         exec(command)
     except: pass
@@ -37,7 +37,9 @@ def parseM(message):
     checker.update(command.encode())                                      # calculating the md5sum of the command
     calculatedSum = (b'%02X' % (sum(checker.digest()) & 0xFF)).decode()   #
 
-    if sentSum == calculatedSum:
+    if sentSum == 'XX':
+        rosPost(command)
+    elif sentSum == calculatedSum:
         time.sleep(4)
         client.main.send("de GOOD k\n", timeout=15)
         rosPost(command)
@@ -67,4 +69,27 @@ def expectMessage():    # takes in messages recieved by fldigi, strips them of w
                 buffer = ''
 
         time.sleep(1) #try not having a delay
-expectMessage()
+#expectMessage()
+
+def restartFldigi():
+    global app
+    app.kill()
+    time.sleep(3)
+    app = pyfldigi.ApplicationMonitor()
+    app.start()
+    client = pyfldigi.Client()
+    client.modem.carrier = 2500
+    time.sleep(2)
+    client.main.send("de restart successful k/n", timeout=15)
+
+def changeFrequency(freq):
+    client.rig.frequency = freq * 1000
+    client.modem.carrier = 2500
+    time.sleep(1)
+    client.main.send("de frequency set to " + str(client.rig.frequency) + " k/n", timeout = 15)
+
+def opMode(modeName):
+    client.modem.name = modeName
+    client.modem.carrier = 2500
+    time.sleep(1)
+    client.main.send("de opMode set at " + client.modem.name + " k/n", timeout=15)

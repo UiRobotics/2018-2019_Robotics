@@ -21,13 +21,17 @@ endString = ";"
     restartFldigi() - restarts the app and client
 '''
 
+gpsSendTime = time.clock()
+
 def main():
+    global gpsSendTime
     buffer = ''
     while True:
         curr_buffer = client.text.get_rx_data().decode('UTF-8')
         if len(curr_buffer) != 0:
             buffer += curr_buffer
-        else:
+        elif (time.clock() - gpsSendTime) > 15:
+            gpsSendTime = time.clock()
             gps()
         if endString in buffer: # only looks for messages in buffer if there's a terminating character in the buffer
             if startString in buffer:
@@ -94,7 +98,7 @@ def opMode(modeName):
 
 def gps():
     rosGPS = [45.111, 125.6969] # get the longitude and latitude from subbing to the gps arduino
-    client.main.send("de\n longitude: " + str(rosGPS[1]) + "\nlatitude: " + str(rosGPS[0]) + "\nk\n", timeout = 20)
-    time.sleep(4)
+    client.main.send("de Idevice:" + str(rosGPS[1]) + ":" + str(rosGPS[0]) + "; k\n", timeout = 20)
+    time.sleep(1)
 
 main()

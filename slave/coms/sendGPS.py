@@ -6,12 +6,19 @@
 import pyfldigi
 import hashlib  #finding checksum for verification
 import time
+import serial
+import serial.tools.list_ports as SerialLib
 
 app = pyfldigi.ApplicationMonitor()
 app.start()                 # starts fldigi
 client = pyfldigi.Client()
 client.modem.name = 'BPSK63'       # sets op mode (likely switch to 59)
 client.modem.carrier = 2500 # sets cursor frequency
+
+ports = SerialLib.comports()
+for a in ports:
+    if "Arduino" in a.manufacturer:
+        arduino = serial.Serial(a.name, 115200, timeout=.1)
 
 startString = "IDevice:"
 endString = ";"
@@ -21,7 +28,7 @@ endString = ";"
     restartFldigi() - restarts the app and client
 '''
 
-gpsSendTime = time.clock()
+gpsSendTime = time.clock() - 10
 
 def main():
     global gpsSendTime
@@ -97,7 +104,7 @@ def opMode(modeName):
     client.main.send("de opMode set at " + client.modem.name + " k/n", timeout=15)
 
 def gps():
-    rosGPS = [45.111, 125.6969] # get the longitude and latitude from subbing to the gps arduino
+    rosGPS = 
     client.main.send("de Idevice:" + str(rosGPS[1]) + ":" + str(rosGPS[0]) + "; k\n", timeout = 20)
     time.sleep(1)
 

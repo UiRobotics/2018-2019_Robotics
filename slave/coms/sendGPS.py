@@ -17,7 +17,7 @@ client.modem.carrier = 2500 # sets cursor frequency
 
 ports = SerialLib.comports()
 for a in ports:
-    if "Arduino" in a.manufacturer:
+    if "Arduino" in a.manufacturer and a.pid == 67:
         arduino = serial.Serial(a.name, 115200, timeout=.1)
 
 startString = "IDevice:"
@@ -104,8 +104,12 @@ def opMode(modeName):
     client.main.send("de opMode set at " + client.modem.name + " k/n", timeout=15)
 
 def gps():
-    rosGPS = 
-    client.main.send("de Idevice:" + str(rosGPS[1]) + ":" + str(rosGPS[0]) + "; k\n", timeout = 20)
+    data = arduino.readline()[:-2] #the last bit gets rid of the new-line chars
+	if data:
+        rosGPS = (data[:10], data[11:])
+        client.main.send("de Idevice:" + str(rosGPS[1]) + ":" + str(rosGPS[0]) + "; k\n", timeout = 20)
+    else:
+        client.main.send("de no GPS k\n", timeout = 10)
     time.sleep(1)
 
 main()

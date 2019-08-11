@@ -78,9 +78,9 @@ def restart():
     print("should be restarted")
 
 def main():
-    global gpsSendTime
+    Recieving = True
     buffer = ''
-    while True:
+    while Recieving:
         curr_buffer = client.text.get_rx_data().decode('UTF-8')
         if len(curr_buffer) != 0:
             buffer += curr_buffer
@@ -90,6 +90,7 @@ def main():
                 end = buffer.find(endString) + len(endString)
                 message = buffer[start:end]
                 print("message recieved = " + message)#####################################################
+                Recieving = False
                 #parseM(message)
                 buffer = ''
             else: # if theres a terminating character but no start string

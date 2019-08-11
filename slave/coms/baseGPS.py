@@ -76,3 +76,24 @@ def restart():
     client.modem.carrier = 2500
     time.sleep(2)
     print("should be restarted")
+
+def main():
+    global gpsSendTime
+    buffer = ''
+    while True:
+        curr_buffer = client.text.get_rx_data().decode('UTF-8')
+        if len(curr_buffer) != 0:
+            buffer += curr_buffer
+        if endString in buffer: # only looks for messages in buffer if there's a terminating character in the buffer
+            if startString in buffer:
+                start = buffer.find(startString)
+                end = buffer.find(endString) + len(endString)
+                message = buffer[start:end]
+                print("message recieved = " + message)#####################################################
+                #parseM(message)
+                buffer = ''
+            else: # if theres a terminating character but no start string
+                buffer = ''
+        time.sleep(1)
+
+main()

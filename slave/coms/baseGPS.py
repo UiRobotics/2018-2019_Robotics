@@ -4,20 +4,19 @@
     competition gps for basestation
 ********************************************************************'''
 import pyfldigi
-import hashlib #finding checksum for verification
 import time
 
 '''
 Standard into box into laptop
 Green into insulator into nuc
 '''
-
+'''
 app = pyfldigi.ApplicationMonitor()
 app.start()     # starts fldigi
 client = pyfldigi.Client()
 client.modem.name = 'BPSK63'    # sets op mode
 client.modem.carrier = 2500 #sets cursor frequency
-
+'''
 CALL_SIGN = "KD9JTB"
 startString = "IDevice:"
 endString = ";"
@@ -44,21 +43,29 @@ def restart():
     time.sleep(2)
     print("should be restarted")
 
+def parseM(message):
+    message = message[len(startString):] # removes the starting characters
+    valueEnd = message.find(endString)   # 
+    command = message[:valueEnd]         # remove the terminating character from the string
+    
+    midCommand = command.find(':')
+    latitude = float(command[:midCommand])
+    longitude = float(command[midCommand+1:])
+
 def main():
     Recieving = True
     buffer = ''
     while Recieving:
-        curr_buffer = client.text.get_rx_data().decode('UTF-8')
+        curr_buffer = client.text.get_rx_data()
         if len(curr_buffer) != 0:
-            buffer += curr_buffer
+            buffer += curr_buffer.decode('UTF-8')
         if endString in buffer: # only looks for messages in buffer if there's a terminating character in the buffer
             if startString in buffer:
                 start = buffer.find(startString)
                 end = buffer.find(endString) + len(endString)
                 message = buffer[start:end]
                 print("message recieved = " + message)#####################################################
-                Recieving = False
-                #parseM(message)
+                parseM(message)
                 buffer = ''
             else: # if theres a terminating character but no start string
                 buffer = ''

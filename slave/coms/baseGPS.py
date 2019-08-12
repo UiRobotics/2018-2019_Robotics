@@ -5,18 +5,21 @@
 ********************************************************************'''
 import pyfldigi
 import time
+import webbrowser
 
 '''
 Standard into box into laptop
 Green into insulator into nuc
+https://maps.googleapis.com/maps/api/staticmap?center=51.453444,-112.714806&zoom=19&size=2000x1000&maptype=satellite&markers=size:tiny|51.453444,%20-112.714806&key=AIzaSyD-yP3nNmaVoY-GSmxF7xenPg4x_TywtLU
+AIzaSyD-yP3nNmaVoY-GSmxF7xenPg4x_TywtLU
 '''
-'''
+
 app = pyfldigi.ApplicationMonitor()
 app.start()     # starts fldigi
 client = pyfldigi.Client()
 client.modem.name = 'BPSK63'    # sets op mode
 client.modem.carrier = 2500 #sets cursor frequency
-'''
+
 CALL_SIGN = "KD9JTB"
 startString = "IDevice:"
 endString = ";"
@@ -44,6 +47,7 @@ def restart():
     print("should be restarted")
 
 def parseM(message):
+    # 51.453444,-112.714806
     message = message[len(startString):] # removes the starting characters
     valueEnd = message.find(endString)   # 
     command = message[:valueEnd]         # remove the terminating character from the string
@@ -51,6 +55,8 @@ def parseM(message):
     midCommand = command.find(':')
     latitude = float(command[:midCommand])
     longitude = float(command[midCommand+1:])
+    url = "https://maps.googleapis.com/maps/api/staticmap?center=" + latitude + ',' + longitude + "&zoom=19&size=2000x1000&maptype=satellite&markers=size:tiny|" + latitude + ",%20" + longitude "&key=AIzaSyD-yP3nNmaVoY-GSmxF7xenPg4x_TywtLU"
+    webbrowser.open(url)
 
 def main():
     Recieving = True
